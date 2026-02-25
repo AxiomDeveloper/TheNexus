@@ -13,12 +13,8 @@
     <div id="login-screen" class="screen active">
         <div class="login-container">
             <h1 class="logo">N E X U S</h1>
-            <div class="input-group">
-                <input type="text" id="username" placeholder="Agent ID" readonly>
-            </div>
-            <div class="input-group">
-                <input type="password" id="password" placeholder="Passcode" readonly>
-            </div>
+            <div class="input-group"><input type="text" id="username" placeholder="Agent ID" readonly></div>
+            <div class="input-group"><input type="password" id="password" placeholder="Passcode" readonly></div>
             <button id="auth-btn">AUTHORIZE</button>
         </div>
     </div>
@@ -29,11 +25,64 @@
 
     <div id="dashboard-screen" class="screen">
         <div class="status-bar">
-            <span>NEXUS SECURE</span>
-            <span>100%</span>
+            <span>NEXUS SECURE</span><span id="clock">00:00</span><span>100% [ENC]</span>
         </div>
         <div class="app-grid">
+            <div class="app-icon" data-app="map"><div class="icon-shape map-color">📍</div><span>SAT-MAP</span></div>
+            <div class="app-icon" data-app="files"><div class="icon-shape files-color">📁</div><span>INTEL</span></div>
+            <div class="app-icon" data-app="comms"><div class="icon-shape mail-color">✉️</div><span>COMMS</span></div>
+            <div class="app-icon" data-app="wallet"><div class="icon-shape wallet-color">₿</div><span>LEDGER</span></div>
+        </div>
+    </div>
+
+    <div id="active-app-screen" class="screen">
+        <div class="app-header">
+            <button id="close-app">← OS</button>
+            <span id="app-title">APP</span>
+        </div>
+        <div id="app-content-area">
+            
+            <div id="app-map" class="app-view">
+                <div class="map-container">
+                    <div id="target-marker" class="marker hidden">🎯</div>
+                    <p class="map-overlay">SAT-LINK ACTIVE // COORD TRACING</p>
+                </div>
+                <div id="map-log" class="console-log">Awaiting coordinates...</div>
             </div>
+
+            <div id="app-files" class="app-view">
+                <div class="file-item" id="file-1">
+                    <span>📄 ENCRYPTED_DROP.enc</span>
+                    <button class="action-btn" onclick="game.unlockFile()">DECRYPT</button>
+                </div>
+                <div id="file-content" class="hidden">
+                    <p class="classified-text">TARGET IDENTIFIED.<br>Location uploaded to SAT-MAP.<br>Proceed with caution.</p>
+                </div>
+            </div>
+
+            <div id="app-comms" class="app-view">
+                <div class="email-item">
+                    <strong>FROM: COMMAND</strong>
+                    <p>Agent, we intercepted a drop. You need to decrypt the file in your INTEL app. Buy a decryption tool from the Dark Ledger. Do not fail.</p>
+                </div>
+            </div>
+
+            <div id="app-wallet" class="app-view">
+                <div class="wallet-balance">
+                    <h2>BALANCE</h2>
+                    <p><span id="btc-amount">0.50</span> BTC</p>
+                </div>
+                <div class="store">
+                    <h3>DARK WEB MARKET</h3>
+                    <div class="store-item">
+                        <span>BruteForce_Key.exe</span>
+                        <button class="action-btn" onclick="game.buyItem('key', 0.2)">BUY (0.2 BTC)</button>
+                    </div>
+                </div>
+                <div id="wallet-log" class="console-log">Connection secure.</div>
+            </div>
+
+        </div>
     </div>
 
     <script src="app.js"></script>
