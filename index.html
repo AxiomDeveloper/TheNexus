@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>The Nexus</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="login-screen" class="screen active">
+        <div class="login-container">
+            <h1 class="logo">N E X U S</h1>
+            <div class="input-group">
+                <input type="text" id="username" placeholder="Agent ID" readonly>
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="Passcode" readonly>
+            </div>
+            <button id="auth-btn">AUTHORIZE</button>
+        </div>
+    </div>
+
+    <div id="terminal-screen" class="screen">
+        <div id="terminal-output"></div>
+    </div>
+
+    <div id="dashboard-screen" class="screen">
+        <div class="status-bar">
+            <span>NEXUS SECURE</span>
+            <span>100%</span>
+        </div>
+        <div class="app-grid">
+            </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
