@@ -1,117 +1,260 @@
-// --- GAME STATE ---
-const gameState = {
-    balance: 0.50,
-    inventory: [],
-    filesUnlocked: false,
-    mapTargetRevealed: false
+const STORAGE_KEY = "nexus-state-v1";
+
+const defaultState = {
+  didBoot: false,
+  balance: 0.5,
+  inventory: {
+    bruteForceKey: false,
+  },
+  intelDecrypted: false,
+  mapTargetRevealed: false,
+  mapHackComplete: false,
 };
 
-const game = {
-    updateLog: (elementId, msg) => {
-        const el = document.getElementById(elementId);
-        if(el) el.innerHTML = `> ${msg}<br>` + el.innerHTML;
-    },
+const state = loadState();
 
-    buyItem: (item, cost) => {
-        if (gameState.balance >= cost) {
-            gameState.balance -= cost;
-            gameState.inventory.push(item);
-            document.getElementById('btc-amount').innerText = gameState.balance.toFixed(2);
-            game.updateLog('wallet-log', `TRANSACTION SUCCESS: Downloaded ${item}.exe`);
-        } else {
-            game.updateLog('wallet-log', 'ERROR: INSUFFICIENT FUNDS');
-        }
-    },
+const screens = {
+  login: document.getElementById("login-screen"),
+  terminal: document.getElementById("terminal-screen"),
+  dashboard: document.getElementById("dashboard-screen"),
+  window: document.getElementById("window-screen"),
+};
 
-    unlockFile: () => {
-        if (gameState.inventory.includes('key')) {
-            gameState.filesUnlocked = true;
-            document.getElementById('file-content').classList.remove('hidden');
-            game.revealMapTarget();
-            alert("FILE DECRYPTED: Target coordinates acquired.");
-        } else {
-            alert("ACCESS DENIED: Decryption key required. Check the Ledger.");
-        }
-    },
+const views = {
+  comms: document.getElementById("view-comms"),
+  intel: document.getElementById("view-intel"),
+  ledger: document.getElementById("view-ledger"),
+  satmap: document.getElementById("view-satmap"),
+  terminal: document.getElementById("view-terminal"),
+  settings: document.getElementById("view-settings"),
+};
 
-    revealMapTarget: () => {
-        gameState.mapTargetRevealed = true;
-        document.getElementById('target-marker').classList.remove('hidden');
-        game.updateLog('map-log', 'WARNING: New rogue signal detected.');
+const refs = {
+  agentId: document.getElementById("agent-id"),
+  agentPass: document.getElementById("agent-pass"),
+  loginBtn: document.getElementById("login-btn"),
+  loginStatus: document.getElementById("login-status"),
+  terminalOutput: document.getElementById("terminal-output"),
+  windowTitle: document.getElementById("window-title"),
+  btcBalance: document.getElementById("btc-balance"),
+  ledgerStatus: document.getElementById("ledger-status"),
+  intelStatus: document.getElementById("intel-status"),
+  intelFile: document.getElementById("intel-file"),
+  mapStatus: document.getElementById("map-status"),
+  targetMarker: document.getElementById("target-marker"),
+  statusRight: document.getElementById("status-right"),
+};
+
+bindEvents();
+startClock();
+hydrateUIFromState();
+
+function bindEvents() {
+  refs.loginBtn.addEventListener("click", runLoginSequence);
+
+  document.querySelectorAll(".app-icon").forEach((appBtn) => {
+    appBtn.addEventListener("click", () => openApp(appBtn.dataset.app));
+  });
+
+  document.querySelectorAll(".dock-item").forEach((dockBtn) => {
+    dockBtn.addEventListener("click", () => openApp(dockBtn.dataset.app));
+  });
+
+  document.getElementById("back-btn").addEventListener("click", () => {
+    showScreen("dashboard");
+  });
+
+  document.getElementById("buy-key-btn").addEventListener("click", purchaseKey);
+  document.getElementById("decrypt-btn").addEventListener("click", decryptIntel);
+  refs.targetMarker.addEventListener("click", runMapHack);
+  refs.targetMarker.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") runMapHack();
+  });
+
+  document.getElementById("reset-btn").addEventListener("click", () => {
+    localStorage.removeItem(STORAGE_KEY);
+    window.location.reload();
+  });
+}
+
+async function runLoginSequence() {
+  refs.loginBtn.disabled = true;
+  refs.loginStatus.textContent = "Injecting credential signature...";
+  await autoType(refs.agentId, "AGENT-7742", 90);
+  await wait(180);
+  await autoType(refs.agentPass, "NEXUS//SIGMA-9", 60, true);
+  refs.loginStatus.textContent = "Authenticating relay tunnel...";
+  await wait(600);
+  await bootTerminal();
+
+  state.didBoot = true;
+  saveState();
+  hydrateUIFromState();
+  showScreen("dashboard");
+}
+
+async function bootTerminal() {
+  showScreen("terminal");
+  refs.terminalOutput.textContent = "";
+
+  const lines = [
+    "[NEXUS] INITIALIZING SECURE FRAMEWORK...",
+    "[NEXUS] BYPASSING ISP LOGS...SUCCESS",
+    "[NEXUS] DECRYPTING PAYLOAD BLOCKS...SUCCESS",
+    "[NEXUS] SPOOFING REGIONAL SIGNAL GRID...SUCCESS",
+    "[NEXUS] WELCOME, AGENT.",
+  ];
+
+  for (const line of lines) {
+    refs.terminalOutput.textContent += `> ${line}\n`;
+    await wait(560);
+  }
+
+  await wait(700);
+}
+
+function openApp(appName) {
+  Object.values(views).forEach((view) => view.classList.remove("active"));
+  const activeView = views[appName];
+  if (!activeView) return;
+
+  refs.windowTitle.textContent = appName.toUpperCase();
+  activeView.classList.add("active");
+  showScreen("window");
+}
+
+function purchaseKey() {
+  const cost = 0.2;
+
+  if (state.inventory.bruteForceKey) {
+    refs.ledgerStatus.textContent = "BruteForce_Key.exe already in inventory.";
+    return;
+  }
+
+  if (state.balance < cost) {
+    refs.ledgerStatus.textContent = "Transaction failed: insufficient BTC balance.";
+    return;
+  }
+
+  state.balance = Number((state.balance - cost).toFixed(2));
+  state.inventory.bruteForceKey = true;
+  refs.ledgerStatus.textContent = "Purchase complete. Key injected into secure inventory.";
+
+  saveState();
+  hydrateUIFromState();
+}
+
+function decryptIntel() {
+  if (!state.inventory.bruteForceKey) {
+    refs.intelStatus.textContent = "Access denied. Acquire BruteForce_Key.exe in LEDGER.";
+    return;
+  }
+
+  state.intelDecrypted = true;
+  state.mapTargetRevealed = true;
+  refs.intelStatus.textContent = "Decryption successful. Coordinates extracted.";
+
+  saveState();
+  hydrateUIFromState();
+}
+
+function runMapHack() {
+  if (!state.mapTargetRevealed) {
+    refs.mapStatus.textContent = "No target lock. Decrypt intel first.";
+    return;
+  }
+
+  state.mapHackComplete = true;
+  refs.mapStatus.textContent = "Hack initiated... satellite channel compromised.";
+  saveState();
+}
+
+function hydrateUIFromState() {
+  refs.btcBalance.textContent = state.balance.toFixed(2);
+
+  refs.intelFile.classList.toggle("hidden", !state.intelDecrypted);
+  refs.targetMarker.classList.toggle("hidden", !state.mapTargetRevealed);
+
+  if (state.inventory.bruteForceKey) {
+    refs.ledgerStatus.textContent = "Inventory synced: BruteForce_Key.exe detected.";
+  }
+
+  if (state.intelDecrypted) {
+    refs.intelStatus.textContent = "Decryption successful. Coordinates extracted.";
+    refs.mapStatus.textContent = state.mapHackComplete
+      ? "Hack initiated... satellite channel compromised."
+      : "Target acquired. Tap marker to initiate hack.";
+  }
+
+  refs.statusRight.textContent = `${batteryHint()} | AES-512`;
+
+  if (state.didBoot) {
+    showScreen("dashboard");
+  } else {
+    showScreen("login");
+  }
+}
+
+function showScreen(name) {
+  Object.values(screens).forEach((screen) => screen.classList.remove("active"));
+  screens[name].classList.add("active");
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return structuredClone(defaultState);
+    const parsed = JSON.parse(raw);
+    return {
+      ...structuredClone(defaultState),
+      ...parsed,
+      inventory: {
+        ...defaultState.inventory,
+        ...(parsed.inventory || {}),
+      },
+    };
+  } catch {
+    return structuredClone(defaultState);
+  }
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function startClock() {
+  const clock = document.getElementById("clock");
+  const update = () => {
+    clock.textContent = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  };
+
+  update();
+  setInterval(update, 1000);
+}
+
+async function autoType(element, value, speed = 80, mask = false) {
+  element.value = "";
+
+  for (let i = 0; i < value.length; i += 1) {
+    if (mask) {
+      element.value += "•";
+    } else {
+      element.value += value[i];
     }
-};
 
-// --- CORE OS LOGIC ---
-document.addEventListener('DOMContentLoaded', () => {
-    
-    // Auto-type logic
-    const autoType = async (element, text, speed = 50) => {
-        element.value = '';
-        for (let i = 0; i < text.length; i++) {
-            element.value += text.charAt(i);
-            await new Promise(r => setTimeout(r, speed + Math.random() * 50));
-        }
-    };
+    await wait(speed + Math.random() * 40);
+  }
+}
 
-    // Login
-    document.getElementById('auth-btn').addEventListener('click', async (e) => {
-        const btn = e.target;
-        btn.disabled = true; btn.innerText = "AUTHENTICATING...";
-        await autoType(document.getElementById('username'), "OPR-7742", 80);
-        await new Promise(r => setTimeout(r, 200));
-        await autoType(document.getElementById('password'), "••••••••••••", 60);
-        await new Promise(r => setTimeout(r, 400));
-        bootTerminal();
-    });
+function batteryHint() {
+  const fakeLevel = Math.floor(92 + (Date.now() / 1000) % 6);
+  return `${fakeLevel}%`;
+}
 
-    // Boot Sequence
-    const bootTerminal = async () => {
-        document.getElementById('login-screen').classList.remove('active');
-        document.getElementById('terminal-screen').classList.add('active');
-        const terminal = document.getElementById('terminal-output');
-        const lines = ["HANDSHAKE...", "BYPASSING LOGS... [OK]", "DECRYPTING PAYLOAD...", "WELCOME BACK, AGENT."];
-        for (const line of lines) {
-            terminal.innerHTML += `> ${line}<br>`;
-            await new Promise(r => setTimeout(r, 600));
-        }
-        await new Promise(r => setTimeout(r, 800));
-        document.getElementById('terminal-screen').classList.remove('active');
-        document.getElementById('dashboard-screen').classList.add('active');
-    };
-
-    // Clock
-    setInterval(() => {
-        document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-    }, 1000);
-
-    // App Navigation
-    document.querySelectorAll('.app-icon').forEach(app => {
-        app.addEventListener('click', () => {
-            const appName = app.getAttribute('data-app');
-            
-            // UI Switch
-            document.getElementById('dashboard-screen').classList.remove('active');
-            document.getElementById('active-app-screen').classList.add('active');
-            document.getElementById('app-title').innerText = appName.toUpperCase();
-            
-            // Hide all app views, show active
-            document.querySelectorAll('.app-view').forEach(view => view.classList.remove('active'));
-            document.getElementById(`app-${appName}`).classList.add('active');
-        });
-    });
-
-    // Close App
-    document.getElementById('close-app').addEventListener('click', () => {
-        document.getElementById('active-app-screen').classList.remove('active');
-        document.getElementById('dashboard-screen').classList.add('active');
-    });
-
-    // Map Interaction
-    document.getElementById('target-marker').addEventListener('click', () => {
-        alert("SATELLITE ALIGNED: Initiating localized hack...");
-        game.updateLog('map-log', 'HACK IN PROGRESS... Standby for next mission loop.');
-    });
-});
-
-// Expose game to window for HTML inline onClick functions
-window.game = game;
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
