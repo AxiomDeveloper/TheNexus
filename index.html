@@ -1,90 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>The Nexus</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#05070d">
+  <title>The Nexus</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <main id="app-shell">
+    <section id="login-screen" class="screen active" aria-label="Agent Login">
+      <div class="login-card panel">
+        <p class="eyebrow">CLASSIFIED // LEVEL OMEGA</p>
+        <h1 class="brand">The Nexus</h1>
+        <label class="label" for="agent-id">Agent ID</label>
+        <input id="agent-id" type="text" readonly placeholder="Awaiting secure input">
+        <label class="label" for="agent-pass">Passcode</label>
+        <input id="agent-pass" type="password" readonly placeholder="••••••••••">
+        <button id="login-btn" class="primary-btn">Login</button>
+        <p id="login-status" class="helper-text">Biometric relay unavailable. Fallback to secure credentials.</p>
+      </div>
+    </section>
 
-    <div id="login-screen" class="screen active">
-        <div class="login-container">
-            <h1 class="logo">N E X U S</h1>
-            <div class="input-group"><input type="text" id="username" placeholder="Agent ID" readonly></div>
-            <div class="input-group"><input type="password" id="password" placeholder="Passcode" readonly></div>
-            <button id="auth-btn">AUTHORIZE</button>
-        </div>
-    </div>
+    <section id="terminal-screen" class="screen" aria-label="Boot Terminal">
+      <div class="terminal panel">
+        <pre id="terminal-output"></pre>
+      </div>
+    </section>
 
-    <div id="terminal-screen" class="screen">
-        <div id="terminal-output"></div>
-    </div>
+    <section id="dashboard-screen" class="screen" aria-label="Nexus Dashboard">
+      <header class="status-bar">
+        <span>NEXUS SECURE</span>
+        <span id="clock">00:00</span>
+        <span id="status-right">97% | AES-512</span>
+      </header>
 
-    <div id="dashboard-screen" class="screen">
-        <div class="status-bar">
-            <span>NEXUS SECURE</span><span id="clock">00:00</span><span>100% [ENC]</span>
-        </div>
-        <div class="app-grid">
-            <div class="app-icon" data-app="map"><div class="icon-shape map-color">📍</div><span>SAT-MAP</span></div>
-            <div class="app-icon" data-app="files"><div class="icon-shape files-color">📁</div><span>INTEL</span></div>
-            <div class="app-icon" data-app="comms"><div class="icon-shape mail-color">✉️</div><span>COMMS</span></div>
-            <div class="app-icon" data-app="wallet"><div class="icon-shape wallet-color">₿</div><span>LEDGER</span></div>
-        </div>
-    </div>
+      <section class="app-grid" aria-label="Application Launcher">
+        <button class="app-icon" data-app="comms" aria-label="Open COMMS">
+          <span class="icon-squircle comms">✉</span>
+          <span>COMMS</span>
+        </button>
+        <button class="app-icon" data-app="intel" aria-label="Open INTEL">
+          <span class="icon-squircle intel">📁</span>
+          <span>INTEL</span>
+        </button>
+        <button class="app-icon" data-app="ledger" aria-label="Open LEDGER">
+          <span class="icon-squircle ledger">₿</span>
+          <span>LEDGER</span>
+        </button>
+        <button class="app-icon" data-app="satmap" aria-label="Open SAT-MAP">
+          <span class="icon-squircle satmap">🛰</span>
+          <span>SAT-MAP</span>
+        </button>
+      </section>
 
-    <div id="active-app-screen" class="screen">
-        <div class="app-header">
-            <button id="close-app">← OS</button>
-            <span id="app-title">APP</span>
-        </div>
-        <div id="app-content-area">
-            
-            <div id="app-map" class="app-view">
-                <div class="map-container">
-                    <div id="target-marker" class="marker hidden">🎯</div>
-                    <p class="map-overlay">SAT-LINK ACTIVE // COORD TRACING</p>
-                </div>
-                <div id="map-log" class="console-log">Awaiting coordinates...</div>
+      <footer class="dock" aria-label="Core Tools">
+        <button class="dock-item" data-app="terminal">⌨ Terminal</button>
+        <button class="dock-item" data-app="settings">⚙ Settings</button>
+      </footer>
+    </section>
+
+    <section id="window-screen" class="screen" aria-label="Active App Window">
+      <header class="window-header">
+        <button id="back-btn" class="back-btn">← OS</button>
+        <h2 id="window-title">APP</h2>
+      </header>
+      <section id="window-content">
+        <article id="view-comms" class="app-view">
+          <div class="mail-item panel">
+            <p class="mail-meta">FROM: Command // Priority: Critical</p>
+            <h3>Mission Brief</h3>
+            <p>Agent, interception confirmed. Purchase <strong>BruteForce_Key.exe</strong> in LEDGER to unlock <strong>ENCRYPTED_DROP.enc</strong> in INTEL. Do not expose your trail.</p>
+          </div>
+        </article>
+
+        <article id="view-intel" class="app-view">
+          <div class="panel">
+            <div class="row">
+              <span>📄 ENCRYPTED_DROP.enc</span>
+              <button id="decrypt-btn" class="small-btn">Decrypt</button>
             </div>
-
-            <div id="app-files" class="app-view">
-                <div class="file-item" id="file-1">
-                    <span>📄 ENCRYPTED_DROP.enc</span>
-                    <button class="action-btn" onclick="game.unlockFile()">DECRYPT</button>
-                </div>
-                <div id="file-content" class="hidden">
-                    <p class="classified-text">TARGET IDENTIFIED.<br>Location uploaded to SAT-MAP.<br>Proceed with caution.</p>
-                </div>
+            <p id="intel-status" class="helper-text">File locked behind external key requirement.</p>
+            <div id="intel-file" class="classified hidden">
+              <p>CLASSIFIED DOCUMENT // DECRYPTION COMPLETE</p>
+              <p>Target Coordinates: <strong>34.0522° N, 118.2437° W</strong></p>
+              <p>Upload route has been forwarded to SAT-MAP.</p>
             </div>
+          </div>
+        </article>
 
-            <div id="app-comms" class="app-view">
-                <div class="email-item">
-                    <strong>FROM: COMMAND</strong>
-                    <p>Agent, we intercepted a drop. You need to decrypt the file in your INTEL app. Buy a decryption tool from the Dark Ledger. Do not fail.</p>
-                </div>
+        <article id="view-ledger" class="app-view">
+          <div class="panel">
+            <p class="eyebrow">Wallet</p>
+            <p class="balance"><span id="btc-balance">0.50</span> BTC</p>
+          </div>
+          <div class="panel">
+            <h3>Dark Web Market</h3>
+            <div class="row">
+              <span>BruteForce_Key.exe</span>
+              <button id="buy-key-btn" class="small-btn">Buy 0.20 BTC</button>
             </div>
+            <p id="ledger-status" class="helper-text">Market tunnel stabilized.</p>
+          </div>
+        </article>
 
-            <div id="app-wallet" class="app-view">
-                <div class="wallet-balance">
-                    <h2>BALANCE</h2>
-                    <p><span id="btc-amount">0.50</span> BTC</p>
-                </div>
-                <div class="store">
-                    <h3>DARK WEB MARKET</h3>
-                    <div class="store-item">
-                        <span>BruteForce_Key.exe</span>
-                        <button class="action-btn" onclick="game.buyItem('key', 0.2)">BUY (0.2 BTC)</button>
-                    </div>
-                </div>
-                <div id="wallet-log" class="console-log">Connection secure.</div>
+        <article id="view-satmap" class="app-view">
+          <div class="sat-map panel">
+            <div id="target-marker" class="target-marker hidden" role="button" tabindex="0" aria-label="Target Marker"></div>
+            <p class="map-overlay">SAT-LINK // ULTRA ZOOM</p>
+          </div>
+          <p id="map-status" class="helper-text">No actionable coordinates.</p>
+        </article>
+
+        <article id="view-terminal" class="app-view">
+          <div class="panel mono">
+            <p>> SIGNAL ROUTING: clean</p>
+            <p>> COUNTER-TRACE: active</p>
+            <p>> OPS READY</p>
+          </div>
+        </article>
+
+        <article id="view-settings" class="app-view">
+          <div class="panel">
+            <h3>System Settings</h3>
+            <div class="row">
+              <span>Encryption Profile</span>
+              <span>AES-512</span>
             </div>
+            <div class="row">
+              <span>Data Persistence</span>
+              <span>localStorage</span>
+            </div>
+            <button id="reset-btn" class="small-btn danger">Reset Mission Progress</button>
+          </div>
+        </article>
+      </section>
+    </section>
+  </main>
 
-        </div>
-    </div>
-
-    <script src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
